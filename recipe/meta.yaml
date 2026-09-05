@@ -1,5 +1,5 @@
 {% set name = "unicorn" %}
-{% set version = "2.1.2" %}
+{% set version = "2.1.4" %}
 
 package:
   name: {{ name|lower }}-split
@@ -7,11 +7,11 @@ package:
 
 source:
   url: https://github.com/unicorn-engine/unicorn/archive/{{ version.replace("rc", "-rc") }}.tar.gz
-  sha256: 98687aac94bdfeeed17f80af980b3baafd79f1c3be3aec2e913905d5988f7c4a
+  sha256: ea8863f095a0136388694e5a6063afd9bb7650e30243dd6251af59c5ce5601f4
   folder: source
 
 build:
-  number: 1
+  number: 0
   skip: true  # [win]
   run_exports:
     - {{ pin_subpackage('unicorn', max_pin='x.x.x') }}
@@ -51,6 +51,8 @@ outputs:
       skip: true  # [win]
       script:
         - export LIBUNICORN_PATH="${PREFIX}/lib"
+        # setuptools-scm cannot see a version in the release tarball
+        - export SETUPTOOLS_SCM_PRETEND_VERSION="${PKG_VERSION}"
         - cd source/bindings/python
         - ${PYTHON} -m pip install . -vv
     requirements:
@@ -62,15 +64,16 @@ outputs:
         - pip
         - python
         - setuptools
+        - setuptools-scm
       run:
         - python
         - {{ pin_subpackage("unicorn", exact=True) }}
-        - setuptools
     test:
       imports:
         - unicorn
       commands:
         - pip check
+        - python -c "from importlib.metadata import version; assert version('unicorn') == '{{ version }}'"
       requires:
         - pip
 
